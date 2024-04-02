@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "h5_to_ply"
+version = "0.1.0"
+authors = [
+  { name="Ruben Hohndorf", email="ruben.hohndorf@gmail.com" },
+]
+description = "Generates GBNF grammars from pydantic models"
+readme = "README.md"
+requires-python = ">=3.10"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+
+]
+
+[project.urls]
+Homepage = "https://github.com/"
+Issues = "https://github.com/"
