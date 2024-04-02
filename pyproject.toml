@@ -8,7 +8,7 @@ version = "0.1.0"
 authors = [
   { name="Ruben Hohndorf", email="ruben.hohndorf@gmail.com" },
 ]
-description = "Generates GBNF grammars from pydantic models"
+description = "Converts Gaussians Splats from h5 to ply format"
 readme = "README.md"
 requires-python = ">=3.10"
 classifiers = [
@@ -17,9 +17,11 @@ classifiers = [
     "Operating System :: OS Independent",
 ]
 dependencies = [
-
+    "numpy==1.26.4",
+    "h5py==3.10.0",
+    "plyfile==1.0.3"
 ]
 
 [project.urls]
-Homepage = "https://github.com/"
-Issues = "https://github.com/"
+Homepage = "https://github.com/404-Repo/h5_to_ply"
+Issues = "https://github.com/404-Repo/h5_to_ply/issues"
