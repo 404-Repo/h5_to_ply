@@ -6,7 +6,7 @@ import numpy as np
 from plyfile import PlyData, PlyElement
 
 
-def construct_list_of_attributes(data: Dict):
+def _construct_list_of_attributes(data: Dict):
     l = ["x", "y", "z", "nx", "ny", "nz"]
     # All channels except the 3 DC
     for i in range(data["features_dc"].shape[1] * data["features_dc"].shape[2]):
@@ -26,7 +26,24 @@ def _get_dataset(group: h5.Group, dataset_name: str):
     return np.array(data, dtype=data.dtype)
 
 
-def load_point_cloud_from_h5(data: BytesIO):
+def _load_point_cloud_from_h5(data: BytesIO):
+    """
+    Loads Gaussian Splatting data from an HDF5 file stream.
+
+    Parameters:
+    - data (BytesIO): A BytesIO object containing the HDF5 data.
+
+    Returns:
+    dict: A dictionary containing various attributes of the point cloud:
+          - 'points': numpy.ndarray - The coordinates of the points.
+          - 'normals': numpy.ndarray - The normals of the points.
+          - 'features_dc': numpy.ndarray - The DC features of the points.
+          - 'features_rest': numpy.ndarray - The rest features of the points.
+          - 'opacities': numpy.ndarray - The opacity values of the points.
+          - 'scale': numpy.ndarray - The scale values of the points.
+          - 'rotation': numpy.ndarray - The rotation values of the points.
+          - 'sh_degree': int - The spherical harmonic degree used.
+    """
     file = h5.File(data, mode="r")
     points = _get_dataset(file, "points")
     normals = _get_dataset(file, "normals")
@@ -52,7 +69,20 @@ def load_point_cloud_from_h5(data: BytesIO):
 
 
 def convert_h5_to_ply(data_in: BytesIO, data_out: BytesIO):
-    data_dict = load_point_cloud_from_h5(data_in)
+    """
+    Converts a Gaussian Splatting point cloud stored in an HDF5 file format to a PLY file format.
+
+    Parameters:
+    - data_in (BytesIO): The input HDF5 data stream containing the point cloud data.
+    - data_out (BytesIO): The output PLY data stream where the converted data will be written.
+
+    Returns:
+    None
+
+    Reads point cloud data from the given HDF5 data stream, constructs the necessary
+    data structures, and writes the point cloud data in PLY format to the output data stream.
+    """
+    data_dict = _load_point_cloud_from_h5(data_in)
     xyz = data_dict["points"]
     normals = data_dict["normals"]
     f_dc = np.squeeze(data_dict["features_dc"])
@@ -63,23 +93,10 @@ def convert_h5_to_ply(data_in: BytesIO, data_out: BytesIO):
     rotation = data_dict["rotation"]
     # rotation = data_dict["sh_degree"] = sh_degree
 
-    dtype_full = [(attribute, "f4") for attribute in construct_list_of_attributes(data_dict)]
+    dtype_full = [(attribute, "f4") for attribute in _construct_list_of_attributes(data_dict)]
 
     elements = np.empty(xyz.shape[0], dtype=dtype_full)
     attributes = np.concatenate((xyz, normals, f_dc, opacities, scale, rotation), axis=1)
     elements[:] = list(map(tuple, attributes))
     el = PlyElement.describe(elements, "vertex")
     PlyData([el]).write(data_out)
-
-
-if __name__ == "__main__":
-    h5file_path = "/home/ruben/Documents/Atlas/tiger_pcl.h5"
-    in_buffer: BytesIO = BytesIO()
-    out_buffer: BytesIO = BytesIO()
-    with open(h5file_path, "rb") as f:
-        in_buffer = BytesIO(f.read())
-
-    with open("/home/ruben/Documents/Atlas/tiger3_pcl.ply", "wb") as f:
-        convert_h5_to_ply(in_buffer, out_buffer)
-        out_buffer.seek(0)
-        f.write(out_buffer.getbuffer())
